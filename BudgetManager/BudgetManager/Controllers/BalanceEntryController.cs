@@ -12,13 +12,13 @@ namespace BudgetManager.Controllers
     [Route("api/[controller]")]
     public class BalanceEntryController : ControllerBase
     {
-        private readonly ApplicationDbContext _dbContext;
+        private readonly IBalanceService _apiClient;
         private readonly IMapper _mapper;
 
-        public BalanceEntryController(ApplicationDbContext dbContext,
+        public BalanceEntryController(IBalanceService apiClient,
             IMapper mapper)
         {
-            _dbContext = dbContext;
+            _apiClient = apiClient;
             _mapper = mapper;
         }
 
@@ -26,36 +26,8 @@ namespace BudgetManager.Controllers
         [ProducesResponseType(200, Type = typeof(BalanceEntry))]
         public async Task<IActionResult> GetEntries([FromQuery] Filter filter)
         {
-            var predicate = GetFilterPredicate(filter);
-            var result = new SearchEntriesResult
-            {
-                Items = await _mapper.ProjectTo<BalanceEntryDto>(_dbContext.BalanceEntries.Where(predicate).Take(filter.RowCount)).ToArrayAsync(),
-                TotalRowCount = await _dbContext.BalanceEntries.CountAsync()
-            };
+            var result = await _apiClient.GetBalanceEntriesAsync(filter);
             return Ok(result);
         }
-
-        private Expression<Func<BalanceEntry, bool>> GetFilterPredicate(Filter? filter)
-        {
-            var resultPredicate = PredicateBuilder.True<BalanceEntry>();
-            if (filter?.From != null)
-            {
-                resultPredicate = resultPredicate.And(p => p.EntryDate >= filter.From);
-            }
-            if (filter?.To != null)
-            {
-                resultPredicate = resultPredicate.And(p => p.EntryDate <= filter.To);
-            }
-            return resultPredicate;
-        }
-
-        //if (from != null)
-        //{
-        //    resultPredicate = resultPredicate.And(p => p.EntryDate >= from);
-        //}
-        //if (to != null)
-        //{
-        //    resultPredicate = resultPredicate.And(p => p.EntryDate <= to);
-        //}
     }
 }

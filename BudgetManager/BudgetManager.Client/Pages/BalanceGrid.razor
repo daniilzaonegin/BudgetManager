@@ -2,7 +2,7 @@
 @using Microsoft.AspNetCore.Authorization
 @attribute [Authorize]
 @rendermode InteractiveAuto
-@inject IApiClient ApiClient
+@inject IBalanceService ApiClient
 @inject NavigationManager NavManager
 
 <FluentDatePicker Label="Balance Dates" @bind-Value="@DateFrom" />
@@ -64,7 +64,16 @@ else
         // by the external API.
         _balanceItemsProvider = async req =>
         {
-            var response = await ApiClient.GetBalanceEntries(DateFrom, DateTo);
+            Filter filter = new Filter
+            {
+                From = DateFrom,
+                To = DateTo,
+                SortBy = req.SortByColumn?.ToString(),
+                Order = req.SortByAscending ? "asc" : "desc",
+                StartIndex = 1
+            };
+
+            var response = await ApiClient.GetBalanceEntriesAsync(filter);
             return GridItemsProviderResult.From(
                 items: response.Items,
                 totalItemCount: response.TotalRowCount);
