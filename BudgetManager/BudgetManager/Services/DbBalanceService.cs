@@ -42,11 +42,46 @@ public class DbBalanceService : IBalanceService
         };
     }
 
+    public async Task<BalanceEntryDto?> GetBalanceEntryAsync(int id)
+    {
+        var entry = await _dbContext.BalanceEntries.FindAsync(id);
+        if (entry == null) return null;
+        return _mapper.Map<BalanceEntryDto>(entry);
+    }
+
+    public async Task<BalanceEntryDto> CreateBalanceEntryAsync(BalanceEntryDto entry)
+    {
+        var entryToCreate = new BalanceEntry
+        {
+            EntryDate = entry.EntryDate ?? DateTime.Now,
+            Description = entry.Description ?? "",
+            Amount = entry.Amount,
+        };
+        _dbContext.BalanceEntries.Add(entryToCreate);
+        await _dbContext.SaveChangesAsync();
+        return _mapper.Map<BalanceEntryDto>(entryToCreate);
+    }
+
+    public async Task<BalanceEntryDto?> EditEntryAsync(int id, BalanceEntryDto balanceEntry)
+    {
+        var entry = await _dbContext.BalanceEntries.FindAsync(id);
+        if (entry == null)
+        {
+            return null;
+        }
+        var editedEntry = _mapper.Map<BalanceEntry>(balanceEntry);
+        entry.Description = editedEntry.Description;
+        entry.Amount = editedEntry.Amount;
+        entry.EntryDate = editedEntry.EntryDate;
+        entry.Description = editedEntry.Description;
+        await _dbContext.SaveChangesAsync();
+        return _mapper.Map<BalanceEntryDto>(entry);
+    }
+
     private Expression<Func<BalanceEntry, object>> GetSorting(Filter? filter)
     {
         return filter?.SortBy?.ToLower() switch
         {
-            "isexpense" => p => p.IsExpense,
             "entryDate" => p => p.EntryDate,
             "amount" => p => p.Amount,
             "description" => p => p.Description,

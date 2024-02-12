@@ -1,10 +1,16 @@
-﻿using System;
-using System.Collections.Generic;
-using System.ComponentModel.DataAnnotations;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
+﻿using System.ComponentModel.DataAnnotations;
 
 namespace BudgetManager.Shared;
 
-public record BalanceEntryDto(int Id, [Required] string Description, DateTime EntryDate, bool IsExpense, [Required] decimal Amount);
+public record BalanceEntryDto
+{
+    public int Id { get; set; }
+
+    [Required]
+    public string? Description { get; set; }
+
+    public DateTime? EntryDate { get; set; }
+
+    [Required]
+    public decimal Amount { get; set; }
+}

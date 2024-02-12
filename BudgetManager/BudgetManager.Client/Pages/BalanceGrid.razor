@@ -1,58 +1,41 @@
 ﻿@page "/"
 @using Microsoft.AspNetCore.Authorization
+@using System.Globalization
 @attribute [Authorize]
 @rendermode InteractiveAuto
 @inject IBalanceService ApiClient
 @inject NavigationManager NavManager
-
-<FluentDatePicker Label="Balance Dates" @bind-Value="@DateFrom" />
-<FluentDatePicker AriaLabel="To" @bind-Value="@DateTo" />
-
+@* <FluentStack HorizontalGap="10" Width="30px"> *@
+<FluentToolbar aria-labelledby="toolbar-label" id="toolbar-external-label">
+    <FluentDatePicker Label="Balance Dates" Value="@_dateFrom" ValueChanged="@changeDateFromValue" Culture="@CultureInfo.GetCultureInfo("de-DE")" />
+    <FluentDatePicker AriaLabel="To" Value="@_dateTo" ValueChanged="changeDateToValue" Culture="@CultureInfo.GetCultureInfo("de-DE")" />
+    <FluentButton Appearance="Appearance.Accent" OnClick="OpenCreateWindow">Create New Entry</FluentButton>
+</FluentToolbar>
+@* </FluentStack> *@
 @if (_balanceItemsProvider == null)
 {
     <p><em>Loading...</em></p>
 }
 else
 {
-    <FluentDataGrid @ref="_grid" ItemsProvider="_balanceItemsProvider">
-        <PropertyColumn Property="@(p => p.Amount)" Sortable="true" />
-        <PropertyColumn Property="@(p => p.EntryDate)" Sortable="true" />
-        <PropertyColumn Property="@(p => p.Description)" Sortable="true" />
-        <PropertyColumn Property="@(p => p.IsExpense)" Sortable="true" />
-    </FluentDataGrid>
+    <div style="height: calc(100vh - 140px); overflow:auto;" tabindex="-1">
+        <FluentDataGrid @ref="_grid" ItemsProvider="_balanceItemsProvider" Virtualize="true"
+                GenerateHeader="GenerateHeaderOption.Sticky" TGridItem="BalanceEntryDto">
+            <PropertyColumn Property="@(p => p.Amount)" Sortable="true" />
+            <PropertyColumn Property="@(p => p.EntryDate)" Sortable="true" />
+            <PropertyColumn Property="@(p => p.Description)" Sortable="true" />
+            <TemplateColumn Title="Actions" Align="@Align.End">
+                <FluentButton IconEnd="@(new Icons.Regular.Size16.Edit())" OnClick="@(() => NavManager.NavigateTo($"/edit/{context.Id}"))" />
+                <FluentButton IconEnd="@(new Icons.Regular.Size16.Delete())" OnClick="@(() => Console.WriteLine("Delete clicked"))" />
+            </TemplateColumn>
+        </FluentDataGrid>
+    </div>
 }
 @code {
     private FluentDataGrid<BalanceEntryDto> _grid;
     private DateTime? _dateFrom;
     private DateTime? _dateTo;
-    private DateTime? DateFrom
-    {
-        get
-        {
-            return _dateFrom;
-        }
-        set
-        {
-            _dateFrom = value;
-            ReloadGrid();
-        }
-    }
-
-    private DateTime? DateTo
-    {
-        get
-        {
-            return _dateTo;
-        }
-        set
-        {
-            _dateTo = value;
-            ReloadGrid();
-        }
-    }
-
     private GridItemsProvider<BalanceEntryDto> _balanceItemsProvider;
-
 
     protected override void OnInitialized()
     {
@@ -65,13 +48,14 @@ else
         _balanceItemsProvider = async req =>
         {
             Filter filter = new Filter
-            {
-                From = DateFrom,
-                To = DateTo,
-                SortBy = req.SortByColumn?.ToString(),
-                Order = req.SortByAscending ? "asc" : "desc",
-                StartIndex = 1
-            };
+                {
+                    From = _dateFrom,
+                    To = _dateTo,
+                    SortBy = req.SortByColumn?.Title,
+                    Order = req.SortByAscending ? "asc" : "desc",
+                    StartIndex = req.StartIndex,
+                    RowCount = req.Count ?? 20
+                };
 
             var response = await ApiClient.GetBalanceEntriesAsync(filter);
             return GridItemsProviderResult.From(
@@ -79,8 +63,21 @@ else
                 totalItemCount: response.TotalRowCount);
         };
     }
-    private void ReloadGrid()
+
+    private void OpenCreateWindow()
     {
-        _grid.RefreshDataAsync();
+        NavManager.NavigateTo("/create/entry");
+    }
+
+    private async Task changeDateToValue(DateTime? value)
+    {
+        _dateTo = value;
+        await _grid.RefreshDataAsync();
+
+    }
+    private async Task changeDateFromValue(DateTime? value)
+    {
+        _dateFrom = value;
+        await _grid.RefreshDataAsync();
     }
 }

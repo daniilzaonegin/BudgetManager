@@ -1,0 +1,88 @@
+﻿@page "/create/entry"
+@page "/edit/{EntryId:int}"
+@using Microsoft.AspNetCore.Authorization
+@attribute [Authorize]
+@inject IBalanceService BalanceService
+@inject IToastService ToastService
+@inject NavigationManager NavManager
+@rendermode @(new InteractiveAutoRenderMode(prerender: false))
+@if (EntryId.HasValue)
+{
+    <h1>EditEntry</h1>
+}
+else
+{
+    <h1>CreateEntry</h1>
+}
+<EditForm Model="@Entry" OnValidSubmit="@SaveEntryAsync" FormName="balance_entry" novalidate>
+    <DataAnnotationsValidator />
+    <FluentValidationSummary />
+
+    <FluentGrid>
+        <FluentGridItem md="7" sm="12">
+            <FluentDatePicker Style="width: 100%" Name="EntryDate" @bind-Value="Entry.EntryDate" Id="entryDate" Label="Entry Date" Required></FluentDatePicker>
+             <FluentValidationMessage For="()=> Entry.EntryDate" />
+         </FluentGridItem>
+         <FluentGridItem md="7" sm="12">
+             <FluentTextArea Style="width:100%" Rows="5" Name="Description" @bind-Value="Entry.Description" Id="entryDescription" Label="Description" Required></FluentTextArea>
+             <FluentValidationMessage For="()=> Entry.Description" />
+         </FluentGridItem>
+         <FluentGridItem md="7" sm="12">
+             <FluentNumberField Style="width:100%" Name="Amount" @bind-Value="Entry.Amount" Id="entryAmount" Label="Amount" Required></FluentNumberField>
+             <FluentValidationMessage For="()=> Entry.Amount" />
+         </FluentGridItem>
+
+     </FluentGrid>
+     <FluentButton Type="ButtonType.Submit" Appearance="Appearance.Accent">Submit</FluentButton>
+     <FluentButton Type="ButtonType.Button" Appearance="Appearance.Outline" OnClick="@(() => NavManager.NavigateTo("/"))">Back</FluentButton>
+ </EditForm>
+
+ @code {
+    [Parameter]
+    public int? EntryId { get; set; }
+
+    [SupplyParameterFromForm]
+    public BalanceEntryDto Entry { get; set; } = new BalanceEntryDto();
+
+    protected override async Task OnInitializedAsync()
+    {
+        if (!EntryId.HasValue)
+        {
+            Entry.EntryDate = DateTime.Now;
+        }
+        else
+        {
+            Entry = new BalanceEntryDto();
+            var entry = await BalanceService.GetBalanceEntryAsync(EntryId.Value);
+            if (entry == null)
+            {
+                ToastService.ShowError("Record not found!");
+                NavManager.NavigateTo("/");
+                return;
+            }
+            Entry = entry;        
+        }
+    }
+
+    private async Task SaveEntryAsync(EditContext editContext)
+    {
+        try
+        {
+            if (EntryId == null || !EntryId.HasValue)
+            {
+                var createdEntity = await BalanceService.CreateBalanceEntryAsync(Entry);
+                ToastService.ShowInfo("BalanceEntry was created successfully");
+                NavManager.NavigateTo("/");
+                return;
+            }
+
+            var editedEntry = await BalanceService.EditEntryAsync(EntryId.Value, Entry);
+            ToastService.ShowInfo("BalanceEntry was edited successfully");
+            NavManager.NavigateTo("/");
+        }
+        catch (Exception e)
+        {
+            ToastService.ShowError($"Exception occured:{e}");
+        }
+    }
+}

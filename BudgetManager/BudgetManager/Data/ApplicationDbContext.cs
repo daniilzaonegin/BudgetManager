@@ -10,7 +10,7 @@ namespace BudgetManager.Data
         protected override void OnModelCreating(ModelBuilder builder)
         {
             builder.Entity<BalanceEntry>().Property(e => e.Description).HasMaxLength(210);
-            builder.Entity<BalanceEntry>().Property(e => e.Id).UseIdentityColumn();
+            builder.Entity<BalanceEntry>().Property(e => e.Id).ValueGeneratedOnAdd();
             builder.Entity<BalanceEntry>().Property(e => e.Amount).HasColumnType("decimal(18,2)");
             base.OnModelCreating(builder);
         }

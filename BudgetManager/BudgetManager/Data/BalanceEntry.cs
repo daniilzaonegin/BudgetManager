@@ -10,7 +10,5 @@ public class BalanceEntry
 
     public DateTime EntryDate { get; set; }
 
-    public bool IsExpense { get; set; }
-
     public decimal Amount { get; set; }
 }

@@ -13,13 +13,41 @@ public class ApiBalanceService : IBalanceService
         _httpClient = httpClient;
     }
 
+    public async Task<BalanceEntryDto> CreateBalanceEntryAsync(BalanceEntryDto entry)
+    {
+        const string path = "api/balanceEntry";
+        var response = await _httpClient.PostAsJsonAsync(path, entry);
+        response.EnsureSuccessStatusCode();
+        BalanceEntryDto? createdEntry = await response.Content.ReadFromJsonAsync<BalanceEntryDto>();
+        if (createdEntry == null)
+        {
+            throw new Exception("Error occured during balance entry creation!");
+        }
+        return createdEntry;
+    }
+
+    public async Task<BalanceEntryDto?> GetBalanceEntryAsync(int id)
+    {
+        string path = $"api/balanceEntry/{id}";
+        BalanceEntryDto? response = null;
+        try
+        {
+            response = await _httpClient.GetFromJsonAsync<BalanceEntryDto?>(path);
+        }
+        catch (Exception)
+        {
+            return null;
+        }
+        return response;
+    }
+
     public async Task<SearchEntriesResult> GetBalanceEntriesAsync(Filter? filter)
     {
         UriBuilder uriBuilder = new UriBuilder();
         uriBuilder.Path = "api/balanceEntry";
-        uriBuilder.Query = BuildQueryString(filter?.From, 
-            filter?.To, filter?.RowCount ?? 20, 
-            filter?.SortBy, filter?.Order, 
+        uriBuilder.Query = BuildSearchQueryString(filter?.From,
+            filter?.To, filter?.RowCount ?? 20,
+            filter?.SortBy, filter?.Order,
             filter?.StartIndex ?? 0);
         var searchResult =
             await _httpClient.GetFromJsonAsync<SearchEntriesResult>(uriBuilder.Uri.PathAndQuery);
@@ -29,13 +57,34 @@ public class ApiBalanceService : IBalanceService
         }
         return searchResult;
     }
-
-    private string BuildQueryString(DateTime? from = null,
-        DateTime? to = null, int rowsCount = 20, string? sortBy = null, string? order = null, int startIndex = 0)
+    public async Task<BalanceEntryDto?> EditEntryAsync(int id,
+        BalanceEntryDto balanceEntry)
     {
-        string query = $"?rowsCount={rowsCount}&order={order ?? "asc"}&startIndex={startIndex}&";
+        string path = $"api/balanceEntry/{id}";
+        BalanceEntryDto? result = null;
+        try
+        {
+            HttpResponseMessage response =
+                await _httpClient.PutAsJsonAsync(path, balanceEntry);
+            response.EnsureSuccessStatusCode();
+            result =
+                await response.Content.ReadFromJsonAsync<BalanceEntryDto?>();
+        }
+        catch (Exception e)
+        {
+            Console.WriteLine($"Exception during Edit of an entry: {e}");
+            throw;
+        }
+        return result;
+    }
 
-        if(from != null)
+    private string BuildSearchQueryString(DateTime? from = null,
+        DateTime? to = null, int rowsCount = 20, string? sortBy = null,
+        string? order = null, int startIndex = 0)
+    {
+        string query = $"?rowCount={rowsCount}&order={order ?? "asc"}&startIndex={startIndex}&";
+
+        if (from != null)
         {
             query += $"from={from.ToIsoDateString()}&";
         }
@@ -43,7 +92,7 @@ public class ApiBalanceService : IBalanceService
         {
             query += $"to={to.ToIsoDateString()}&";
         }
-        if(!string.IsNullOrEmpty(sortBy))
+        if (!string.IsNullOrEmpty(sortBy))
         {
             query += $"sortBy={sortBy}&";
         }

@@ -7,28 +7,30 @@
 @inject NavigationManager NavigationManager
 
 <nav>
-    <FluentNavMenu Width="250" Collapsible="true" Title="Custom navigation menu">
+    <FluentNavMenu Width="250" Collapsible="true" @bind-Expanded="@_expanded" Title="Custom navigation menu">
         <FluentNavLink Href="/" Match="NavLinkMatch.All" Icon="@Icon.FromImageUrl("/images/home.svg")" IconColor="Color.Accent">Home</FluentNavLink>
         <AuthorizeView>
             <Authorized>
-                <FluentNavLink Href="Account/Manage">@context.User.Identity?.Name</FluentNavLink>
-                <form action="Account/Logout" method="post">
-                    <AntiforgeryToken />
-                    <input type="hidden" name="ReturnUrl" value="@currentUrl" />
-                    <FluentButton Type="ButtonType.Submit" Style="width: 100%;">Logout</FluentButton>
-                </form>
-            </Authorized>
-            <NotAuthorized>
-                <FluentNavLink Href="Account/Login">Login</FluentNavLink>
-            </NotAuthorized>
-        </AuthorizeView>
-    </FluentNavMenu>
-</nav>
+                <FluentNavLink>@context.User.Identity?.Name</FluentNavLink>
+                    <form action="Account/Logout" method="post">
+                        <AntiforgeryToken />
+                        <input type="hidden" name="ReturnUrl" value="@currentUrl" />
+                        <FluentButton Type="ButtonType.Submit"
+                                      Style="width: 100%;" IconStart="@(new Icons.Regular.Size16.ArrowEnter().WithColor(Color.Neutral))"
+                                      Title="Logout" />
+                    </form>
+                </Authorized>
+                <NotAuthorized>
+                    <FluentNavLink Href="Account/Login" IconColor="@Color.Neutral" Icon="@((new Icons.Regular.Size16.ArrowExport()).WithColor(Color.Neutral))">Login</FluentNavLink>
+                </NotAuthorized>
+            </AuthorizeView>
+        </FluentNavMenu>
 
+    </nav>
 
-@code {
+    @code {
     private string? currentUrl;
-
+    private bool _expanded = false;
     protected override void OnInitialized()
     {
         currentUrl = NavigationManager.ToBaseRelativePath(NavigationManager.Uri);

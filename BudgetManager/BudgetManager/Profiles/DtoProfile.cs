@@ -8,6 +8,6 @@ public class DtoProfile : Profile
 {
     public DtoProfile()
     {
-        CreateMap<BalanceEntry, BalanceEntryDto>();
+        CreateMap<BalanceEntry, BalanceEntryDto>().ReverseMap();
     }
 }

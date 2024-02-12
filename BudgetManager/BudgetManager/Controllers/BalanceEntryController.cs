@@ -1,33 +1,62 @@
 ﻿using AutoMapper;
-using BudgetManager.Data;
 using BudgetManager.Shared;
-using BudgetManager.Utils;
 using Microsoft.AspNetCore.Mvc;
-using Microsoft.EntityFrameworkCore;
-using System.Linq.Expressions;
 
-namespace BudgetManager.Controllers
+namespace BudgetManager.Controllers;
+
+[ApiController]
+[Route("api/[controller]")]
+public class BalanceEntryController : ControllerBase
 {
-    [ApiController]
-    [Route("api/[controller]")]
-    public class BalanceEntryController : ControllerBase
+    private readonly IBalanceService _apiClient;
+    private readonly IMapper _mapper;
+
+    public BalanceEntryController(IBalanceService apiClient,
+        IMapper mapper)
     {
-        private readonly IBalanceService _apiClient;
-        private readonly IMapper _mapper;
+        _apiClient = apiClient;
+        _mapper = mapper;
+    }
 
-        public BalanceEntryController(IBalanceService apiClient,
-            IMapper mapper)
-        {
-            _apiClient = apiClient;
-            _mapper = mapper;
-        }
+    [HttpGet]
+    [ProducesResponseType(200, Type = typeof(SearchEntriesResult))]
+    public async Task<IActionResult> GetEntries([FromQuery] Filter filter)
+    {
+        var result = await _apiClient.GetBalanceEntriesAsync(filter);
+        return Ok(result);
+    }
 
-        [HttpGet]
-        [ProducesResponseType(200, Type = typeof(BalanceEntry))]
-        public async Task<IActionResult> GetEntries([FromQuery] Filter filter)
+    [HttpGet("{id:int}")]
+    [ProducesResponseType(200, Type =typeof(BalanceEntryDto))]
+    [ProducesResponseType(404)]
+    public async Task<IActionResult> GetEntry(int id)
+    {
+        var result = await _apiClient.GetBalanceEntryAsync(id);
+        if(result == null)
         {
-            var result = await _apiClient.GetBalanceEntriesAsync(filter);
-            return Ok(result);
+            return NotFound();
         }
+        return Ok(result);
+    }
+
+    [HttpPost]
+    [ProducesResponseType(200, Type = typeof(BalanceEntryDto))]
+    public async Task<IActionResult> CreateEntry(BalanceEntryDto balanceEntry)
+    {
+        var result = await _apiClient.CreateBalanceEntryAsync(balanceEntry);
+        return Ok(result);
+    }
+
+    [HttpPut("{id:int}")]
+    [ProducesResponseType(200, Type = typeof(BalanceEntryDto))]
+    [ProducesResponseType(404, Type = typeof(int))]
+    public async Task<IActionResult> EditEntry(int id, BalanceEntryDto balanceEntry)
+    {
+        var result = await _apiClient.EditEntryAsync(id, balanceEntry);
+        if(result == null)
+        {
+            return NotFound(id);
+        }
+        return Ok(result);
     }
 }
