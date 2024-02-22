@@ -27,12 +27,12 @@ public class BalanceEntryController : ControllerBase
     }
 
     [HttpGet("{id:int}")]
-    [ProducesResponseType(200, Type =typeof(BalanceEntryDto))]
+    [ProducesResponseType(200, Type = typeof(BalanceEntryDto))]
     [ProducesResponseType(404)]
     public async Task<IActionResult> GetEntry(int id)
     {
         var result = await _apiClient.GetBalanceEntryAsync(id);
-        if(result == null)
+        if (result == null)
         {
             return NotFound();
         }
@@ -53,10 +53,32 @@ public class BalanceEntryController : ControllerBase
     public async Task<IActionResult> EditEntry(int id, BalanceEntryDto balanceEntry)
     {
         var result = await _apiClient.EditEntryAsync(id, balanceEntry);
-        if(result == null)
+        if (result == null)
         {
             return NotFound(id);
         }
         return Ok(result);
+    }
+
+    [HttpDelete("{id:int}")]
+    [ProducesResponseType(200)]
+    [ProducesResponseType(404)]
+    [ProducesResponseType(500)]
+    public async Task<IActionResult> DeleteEntry(int id)
+    {
+        try
+        {
+            await _apiClient.DeleteEntryAsync(id);
+        }
+        catch (ArgumentException)
+        {
+            return NotFound($"Entry with specified id={id} was not found");
+        }
+        catch (Exception ex)
+        {
+            return BadRequest(ex.Message);
+        }
+
+        return Ok();
     }
 }

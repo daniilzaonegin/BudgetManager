@@ -26,7 +26,7 @@ else
             <PropertyColumn Property="@(p => p.Description)" Sortable="true" />
             <TemplateColumn Title="Actions" Align="@Align.End">
                 <FluentButton IconEnd="@(new Icons.Regular.Size16.Edit())" OnClick="@(() => NavManager.NavigateTo($"/edit/{context.Id}"))" />
-                <FluentButton IconEnd="@(new Icons.Regular.Size16.Delete())" OnClick="@(() => Console.WriteLine("Delete clicked"))" />
+                <FluentButton IconEnd="@(new Icons.Regular.Size16.Delete())" OnClick="@(async () => await DeleteEntryAsync(context.Id))" />
             </TemplateColumn>
         </FluentDataGrid>
     </div>
@@ -79,5 +79,12 @@ else
     {
         _dateFrom = value;
         await _grid.RefreshDataAsync();
+    }
+
+    private async Task DeleteEntryAsync(int id)
+    {
+        await ApiClient.DeleteEntryAsync(id);
+        await _grid.RefreshDataAsync();
+
     }
 }

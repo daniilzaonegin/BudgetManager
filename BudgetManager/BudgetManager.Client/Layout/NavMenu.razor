@@ -11,6 +11,7 @@
         <FluentNavLink Href="/" Match="NavLinkMatch.All" Icon="@Icon.FromImageUrl("/images/home.svg")" IconColor="Color.Accent">Home</FluentNavLink>
         <AuthorizeView>
             <Authorized>
+                <FluentNavLink Href="/chart" Match="NavLinkMatch.All" Icon="@(new Icons.Regular.Size20.ChartMultiple())" IconColor="Color.Accent">Charts</FluentNavLink>
                 <FluentNavLink>@context.User.Identity?.Name</FluentNavLink>
                     <form action="Account/Logout" method="post">
                         <AntiforgeryToken />

@@ -78,6 +78,16 @@ public class DbBalanceService : IBalanceService
         return _mapper.Map<BalanceEntryDto>(entry);
     }
 
+    public async Task DeleteEntryAsync(int id)
+    {
+        var entry = await _dbContext.BalanceEntries.FindAsync(id);
+        if (entry == null)
+            throw new ArgumentException($"Entry with id {id} doesn't exits");
+
+        _dbContext.BalanceEntries.Remove(entry);
+        await _dbContext.SaveChangesAsync();
+    }
+
     private Expression<Func<BalanceEntry, object>> GetSorting(Filter? filter)
     {
         return filter?.SortBy?.ToLower() switch
@@ -102,4 +112,5 @@ public class DbBalanceService : IBalanceService
         }
         return resultPredicate;
     }
+
 }

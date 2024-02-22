@@ -1,0 +1,30 @@
+﻿@page "/chart"
+@using ApexCharts
+@inject IBalanceService ApiClient
+
+<ApexChart TItem="BalanceEntryDto"
+           Title="Summary of Spends">
+
+    <ApexPointSeries TItem="BalanceEntryDto"
+                     Items="Data"
+                     Name="Net Profit"
+                     SeriesType="SeriesType.Bar"
+                     XValue="e => e.EntryDate"
+                     YValue="e=> e.Amount" />
+
+</ApexChart>
+
+@code {
+    private IEnumerable<BalanceEntryDto> Data { get; set; } = Array.Empty<BalanceEntryDto>();
+
+    protected async override Task OnInitializedAsync()
+    {
+        var result = await ApiClient.GetBalanceEntriesAsync(new Filter
+            {
+                From = DateTime.Now.StartOfMonth(new System.Globalization.CultureInfo("de-De")),
+                To = DateTime.Now.Date
+            });
+        Data = result.Items;
+    }
+
+}

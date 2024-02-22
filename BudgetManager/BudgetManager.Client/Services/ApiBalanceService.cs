@@ -1,4 +1,5 @@
-﻿using BudgetManager.Shared;
+﻿using BudgetManager.Client.Pages;
+using BudgetManager.Shared;
 using Microsoft.FluentUI.AspNetCore.Components;
 using System.Net.Http.Json;
 
@@ -77,7 +78,21 @@ public class ApiBalanceService : IBalanceService
         }
         return result;
     }
-
+    public async Task DeleteEntryAsync(int id)
+    {
+        string path = $"api/balanceEntry/{id}";
+        try
+        {
+            HttpResponseMessage response =
+                await _httpClient.DeleteAsync(path);
+            response.EnsureSuccessStatusCode();
+        }
+        catch (Exception e)
+        {
+            Console.WriteLine($"Exception during Edit of an entry: {e}");
+            throw;
+        }
+    }
     private string BuildSearchQueryString(DateTime? from = null,
         DateTime? to = null, int rowsCount = 20, string? sortBy = null,
         string? order = null, int startIndex = 0)
