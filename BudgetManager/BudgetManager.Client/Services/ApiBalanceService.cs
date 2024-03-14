@@ -58,6 +58,7 @@ public class ApiBalanceService : IBalanceService
         }
         return searchResult;
     }
+
     public async Task<BalanceEntryDto?> EditEntryAsync(int id,
         BalanceEntryDto balanceEntry)
     {
@@ -78,6 +79,7 @@ public class ApiBalanceService : IBalanceService
         }
         return result;
     }
+
     public async Task DeleteEntryAsync(int id)
     {
         string path = $"api/balanceEntry/{id}";
@@ -93,6 +95,22 @@ public class ApiBalanceService : IBalanceService
             throw;
         }
     }
+
+    public async Task<SummaryData[]> GetSummaryDataAsync(DateTime from, DateTime to, string groupBy, bool expenses = false)
+    {
+        UriBuilder uriBuilder = new UriBuilder();
+        uriBuilder.Path = "api/SummaryData";
+        uriBuilder.Query = $"?from={from.ToString("s")}&to={to.ToString("s")}&groupBy={groupBy}&expenses={expenses.ToString()}";
+
+        var result = await _httpClient.GetFromJsonAsync<SummaryData[]>(uriBuilder.Uri.PathAndQuery);
+        if (result == null)
+        {
+            throw new Exception("Api is not available");
+        }
+
+        return result;
+    }
+
     private string BuildSearchQueryString(DateTime? from = null,
         DateTime? to = null, int rowsCount = 20, string? sortBy = null,
         string? order = null, int startIndex = 0)

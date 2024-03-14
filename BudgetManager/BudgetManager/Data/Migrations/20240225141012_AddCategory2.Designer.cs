@@ -4,6 +4,7 @@ using BudgetManager.Data;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 
 #nullable disable
@@ -11,9 +12,11 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 namespace BudgetManager.Migrations
 {
     [DbContext(typeof(ApplicationDbContext))]
-    partial class ApplicationDbContextModelSnapshot : ModelSnapshot
+    [Migration("20240225141012_AddCategory2")]
+    partial class AddCategory2
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -270,7 +273,7 @@ namespace BudgetManager.Migrations
             modelBuilder.Entity("BudgetManager.Data.BalanceEntry", b =>
                 {
                     b.HasOne("BudgetManager.Data.Category", "Category")
-                        .WithMany()
+                        .WithMany("BalanceEntries")
                         .HasForeignKey("CategoryId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
@@ -327,6 +330,11 @@ namespace BudgetManager.Migrations
                         .HasForeignKey("UserId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
+                });
+
+            modelBuilder.Entity("BudgetManager.Data.Category", b =>
+                {
+                    b.Navigation("BalanceEntries");
                 });
 #pragma warning restore 612, 618
         }

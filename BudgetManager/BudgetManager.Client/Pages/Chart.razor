@@ -1,30 +1,87 @@
 ﻿@page "/chart"
+@rendermode InteractiveAuto
 @using ApexCharts
+@using System.Globalization
 @inject IBalanceService ApiClient
+<FluentToolbar aria-labelledby="toolbar-label" id="toolbar-fluent-components-two">
+    <FluentDatePicker Label="Balance Dates" Value="@_dateFrom" ValueChanged="@changeDateFromValue" Culture="@CultureInfo.GetCultureInfo("de-DE")" />
+    <FluentDatePicker AriaLabel="To" Value="@_dateTo" ValueChanged="@changeDateToValue" Culture="@CultureInfo.GetCultureInfo("de-DE")" />
+    <FluentSelect TOption="Boolean"
+                  Label="Ausgaben?"
+                  Items="@(new[]{true, false})"
+                  Id="expenses-listbox"
+                  Width="115px"
+                  Height="250px"
+                  OptionValue="@(p => p.ToString())"
+                  OptionText="@(p => p == true ? "Ausgaben" : "Einkomen")"
+                  Value="@_expenses"
+                  @onchange="OnExpensesChange" />
+</FluentToolbar>
+<div style="height:90%">
+    <ApexChart @ref="_apexChart" TItem="SummaryData"
+               Title="Summary of Spends"
+               Height="@("65%")"
+               Width="@("90%")">
 
-<ApexChart TItem="BalanceEntryDto"
-           Title="Summary of Spends">
+        <ApexPointSeries TItem="SummaryData"
+                         Items="Data"
+                         Name="Net Profit"
+                         SeriesType="SeriesType.Pie"
+                         XValue="e => e.Category"
+                         YValue="e=> e.Amount" />
 
-    <ApexPointSeries TItem="BalanceEntryDto"
-                     Items="Data"
-                     Name="Net Profit"
-                     SeriesType="SeriesType.Bar"
-                     XValue="e => e.EntryDate"
-                     YValue="e=> e.Amount" />
-
-</ApexChart>
+    </ApexChart>
+    <FluentDataGrid @ref="_grid" Items="Data.AsQueryable()" TGridItem="SummaryData" Style="height:35%">
+        <PropertyColumn Property="@(p => p.Category)" Sortable="true" />
+        <PropertyColumn Property="@(p => p.Amount)" Sortable="true" />
+    </FluentDataGrid>
+</div>
 
 @code {
-    private IEnumerable<BalanceEntryDto> Data { get; set; } = Array.Empty<BalanceEntryDto>();
+    private FluentDataGrid<SummaryData> _grid;
+    private IEnumerable<SummaryData> Data { get; set; } = Array.Empty<SummaryData>();
+    private DateTime _dateFrom { get; set; } = DateTime.Now.StartOfMonth(new System.Globalization.CultureInfo("de-De"));
+    private DateTime _dateTo { get; set; } = DateTime.Now.Date;
+    public string _expenses = false.ToString();
+    private ApexChart<SummaryData> _apexChart;
 
     protected async override Task OnInitializedAsync()
     {
-        var result = await ApiClient.GetBalanceEntriesAsync(new Filter
-            {
-                From = DateTime.Now.StartOfMonth(new System.Globalization.CultureInfo("de-De")),
-                To = DateTime.Now.Date
-            });
-        Data = result.Items;
+        Data = await GetData();
+    }
+
+    private async Task changeDateToValue(DateTime? value)
+    {
+        if (value == null) return;
+        _dateTo = value.Value;
+        Data = await GetData();
+        await _apexChart.UpdateSeriesAsync(true);
+    }
+
+    private async Task changeDateFromValue(DateTime? value)
+    {
+        if (value == null) return;
+        _dateFrom = value.Value;
+        Data = await GetData();
+        await _apexChart.UpdateSeriesAsync(true);
+    }
+
+    private async Task<SummaryData[]> GetData()
+    {
+        bool expenses = _expenses == true.ToString() ? true : false;
+        var result = await ApiClient.GetSummaryDataAsync(_dateFrom, _dateTo, "Category", expenses);
+        return result.ToArray();
+    }
+
+    private async Task OnExpensesChange(ChangeEventArgs e)
+    {
+        _expenses = e.Value?.ToString() ?? false.ToString();
+        var loadedData = await GetData();
+        Data = loadedData.Select(p => p).ToList();
+
+        await _apexChart.UpdateSeriesAsync(true);
+        await _apexChart.RenderAsync();
+        StateHasChanged();
     }
 
 }

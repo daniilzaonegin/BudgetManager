@@ -19,6 +19,7 @@ public class BalanceEntryController : ControllerBase
     }
 
     [HttpGet]
+    [Produces("application/json")]
     [ProducesResponseType(200, Type = typeof(SearchEntriesResult))]
     public async Task<IActionResult> GetEntries([FromQuery] Filter filter)
     {
@@ -27,6 +28,7 @@ public class BalanceEntryController : ControllerBase
     }
 
     [HttpGet("{id:int}")]
+    [Produces("application/json")]
     [ProducesResponseType(200, Type = typeof(BalanceEntryDto))]
     [ProducesResponseType(404)]
     public async Task<IActionResult> GetEntry(int id)
@@ -40,6 +42,7 @@ public class BalanceEntryController : ControllerBase
     }
 
     [HttpPost]
+    [Produces("application/json")]
     [ProducesResponseType(200, Type = typeof(BalanceEntryDto))]
     public async Task<IActionResult> CreateEntry(BalanceEntryDto balanceEntry)
     {
@@ -48,6 +51,7 @@ public class BalanceEntryController : ControllerBase
     }
 
     [HttpPut("{id:int}")]
+    [Produces("application/json")]
     [ProducesResponseType(200, Type = typeof(BalanceEntryDto))]
     [ProducesResponseType(404, Type = typeof(int))]
     public async Task<IActionResult> EditEntry(int id, BalanceEntryDto balanceEntry)

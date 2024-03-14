@@ -12,5 +12,8 @@ public record BalanceEntryDto
     public DateTime? EntryDate { get; set; }
 
     [Required]
-    public decimal Amount { get; set; }
+    public decimal? Amount { get; set; }
+
+    [Required]
+    public CategoryDto? Category { get; set; }
 }

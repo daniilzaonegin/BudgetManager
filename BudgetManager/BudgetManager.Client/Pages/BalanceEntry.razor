@@ -3,6 +3,7 @@
 @using Microsoft.AspNetCore.Authorization
 @attribute [Authorize]
 @inject IBalanceService BalanceService
+@inject ICategoryService CategoryService
 @inject IToastService ToastService
 @inject NavigationManager NavManager
 @rendermode @(new InteractiveAutoRenderMode(prerender: false))
@@ -18,41 +19,64 @@ else
     <DataAnnotationsValidator />
     <FluentValidationSummary />
 
-    <FluentGrid>
+    <FluentGrid Style="margin-bottom: 1em">
         <FluentGridItem md="7" sm="12">
             <FluentDatePicker Style="width: 100%" Name="EntryDate" @bind-Value="Entry.EntryDate" Id="entryDate" Label="Entry Date" Required></FluentDatePicker>
-             <FluentValidationMessage For="()=> Entry.EntryDate" />
-         </FluentGridItem>
-         <FluentGridItem md="7" sm="12">
-             <FluentTextArea Style="width:100%" Rows="5" Name="Description" @bind-Value="Entry.Description" Id="entryDescription" Label="Description" Required></FluentTextArea>
-             <FluentValidationMessage For="()=> Entry.Description" />
-         </FluentGridItem>
-         <FluentGridItem md="7" sm="12">
-             <FluentNumberField Style="width:100%" Name="Amount" @bind-Value="Entry.Amount" Id="entryAmount" Label="Amount" Required></FluentNumberField>
-             <FluentValidationMessage For="()=> Entry.Amount" />
-         </FluentGridItem>
+            <FluentValidationMessage For="()=> Entry.EntryDate" />
+        </FluentGridItem>
+        <FluentGridItem md="7" sm="12">
+            <FluentTextArea Style="width:100%" Rows="5" Name="Description" @bind-Value="Entry.Description" Id="entryDescription" Label="Description" Required></FluentTextArea>
+            <FluentValidationMessage For="()=> Entry.Description" />
+        </FluentGridItem>
+        <FluentGridItem md="7" sm="12">
+            <FluentNumberField Style="width:100%" Name="Amount" @bind-Value="Entry.Amount" Id="entryAmount" Label="Amount" Required></FluentNumberField>
+            <FluentValidationMessage For="()=> Entry.Amount" />
+        </FluentGridItem>
+        <FluentGridItem md="7" sm="12">
+            <label id="categoryLabel">Category</label>
+            <FluentRadioGroup Required="true" aria-labelledby="categoryLabel" @bind-Value="Entry.Category!.Id" Name="category" Orientation="Orientation.Horizontal">
+                @foreach (var category in Categories)
+                {
+                    @if (Entry.Category?.Id == category.Id)
+                    {
+                        <FluentRadio Value="category.Id" Checked="true" Required="true">@category.Name</FluentRadio>
+                    }
+                    else
+                    {
+                        <FluentRadio Value="category.Id" Required="true">@category.Name</FluentRadio>
+                    }
+                }
+            </FluentRadioGroup>
+            <FluentValidationMessage For="() => Entry.Category.Id" />
+        </FluentGridItem>
 
-     </FluentGrid>
-     <FluentButton Type="ButtonType.Submit" Appearance="Appearance.Accent">Submit</FluentButton>
-     <FluentButton Type="ButtonType.Button" Appearance="Appearance.Outline" OnClick="@(() => NavManager.NavigateTo("/"))">Back</FluentButton>
- </EditForm>
+    </FluentGrid>
+    <FluentButton Type="ButtonType.Submit" Appearance="Appearance.Accent">Submit</FluentButton>
+    <FluentButton Type="ButtonType.Button" Appearance="Appearance.Outline" OnClick="@(() => NavManager.NavigateTo("/"))">Back</FluentButton>
+</EditForm>
 
- @code {
+@code {
     [Parameter]
     public int? EntryId { get; set; }
 
     [SupplyParameterFromForm]
-    public BalanceEntryDto Entry { get; set; } = new BalanceEntryDto();
+    public BalanceEntryDto Entry { get; set; } = new BalanceEntryDto() { Category = new CategoryDto() };
+
+    private CategoryDto[] Categories { get; set; } = [];
 
     protected override async Task OnInitializedAsync()
     {
+        Categories = await CategoryService.GetCategoriesAsync();
         if (!EntryId.HasValue)
         {
             Entry.EntryDate = DateTime.Now;
+            if (Categories != null && Categories.Length > 0)
+            {
+                Entry.Category = Categories.First();
+            }
         }
         else
         {
-            Entry = new BalanceEntryDto();
             var entry = await BalanceService.GetBalanceEntryAsync(EntryId.Value);
             if (entry == null)
             {
@@ -60,7 +84,7 @@ else
                 NavManager.NavigateTo("/");
                 return;
             }
-            Entry = entry;        
+            Entry = entry;
         }
     }
 
