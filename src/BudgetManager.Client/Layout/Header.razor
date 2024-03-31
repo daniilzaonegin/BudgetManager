@@ -1,0 +1,41 @@
+﻿@rendermode InteractiveAuto
+
+<FluentHeader>
+    BudgetManager
+    <FluentSpacer />
+    <FluentButton IconEnd="@_themeIcon" OnClick="@(() => ChangeTheme())" />
+    <FluentDesignTheme @bind-Mode="@Mode" StorageName="budgetManager_theme" />
+</FluentHeader>
+
+@code {
+    private Icon _themeIcon = new Icons.Regular.Size16.WeatherSunny();
+    public DesignThemeModes Mode { get; set; }
+
+    protected override void OnInitialized()
+    {
+        _themeIcon = GetThemeIcon();
+        if(Mode == DesignThemeModes.System)
+        {
+            Mode = DesignThemeModes.Light;
+        }
+        base.OnInitialized();
+    }
+
+    private void ChangeTheme()
+    {
+        Mode = Mode == DesignThemeModes.Light
+            ? DesignThemeModes.Dark
+            : DesignThemeModes.Light;
+        _themeIcon = GetThemeIcon();
+    }
+
+    private Icon GetThemeIcon()
+    {
+        return Mode switch
+        {
+            DesignThemeModes.Light => new Icons.Regular.Size16.WeatherSunny(),
+            DesignThemeModes.Dark => new Icons.Regular.Size16.WeatherMoon(),
+            _ => new Icons.Regular.Size16.WeatherSunny()
+        };
+    }
+}

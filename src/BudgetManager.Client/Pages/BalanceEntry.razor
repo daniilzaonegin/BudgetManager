@@ -1,0 +1,152 @@
+﻿@page "/create/entry"
+@page "/edit/{EntryId:int}"
+@using Microsoft.AspNetCore.Authorization
+@attribute [Authorize]
+@inject IBalanceService BalanceService
+@inject ICategoryService CategoryService
+@inject IToastService ToastService
+@inject NavigationManager NavManager
+@rendermode @(new InteractiveAutoRenderMode(prerender: false))
+@if (EntryId.HasValue)
+{
+    <h1>EditEntry</h1>
+}
+else
+{
+    <h1>CreateEntry</h1>
+}
+<EditForm Model="@Entry" OnValidSubmit="@SaveEntryAsync" FormName="balance_entry" novalidate>
+    <DataAnnotationsValidator />
+    <FluentValidationSummary />
+
+    <FluentGrid Style="margin-bottom: 1em">
+        <FluentGridItem md="7" sm="12">
+            <FluentSelect TOption="Boolean"
+                          Label="Ausgaben?"
+                          Items="@(new[]{true, false})"
+                          Id="expenses-listbox"
+                          Width="115px"
+                          Height="150px"
+                          OptionValue="@(p => p.ToString())"
+                          OptionText="@(p => p == true ? "Ausgaben" : "Einkomen")"
+                          Value="@Expenses"
+                          @onchange="OnExpensesChange" />
+        </FluentGridItem>
+        <FluentGridItem md="7" sm="12">
+            <FluentDatePicker Style="width: 100%" Name="EntryDate" @bind-Value="Entry.EntryDate" Id="entryDate" Label="Entry Date" Required></FluentDatePicker>
+            <FluentValidationMessage For="()=> Entry.EntryDate" />
+        </FluentGridItem>
+        <FluentGridItem md="7" sm="12">
+            <FluentTextArea Style="width:100%" Rows="5" Name="Description" @bind-Value="Entry.Description" Id="entryDescription" Label="Description" Required></FluentTextArea>
+            <FluentValidationMessage For="()=> Entry.Description" />
+        </FluentGridItem>
+        <FluentGridItem md="7" sm="12">
+            <FluentNumberField Style="width:100%" Name="Amount" @bind-Value="Entry.Amount" Id="entryAmount" Label="Amount" Min="0" Required></FluentNumberField>
+            <FluentValidationMessage For="()=> Entry.Amount" />
+        </FluentGridItem>
+        <FluentGridItem md="7" sm="12">
+            <label id="categoryLabel">Category</label>
+            <FluentRadioGroup Required="true" aria-labelledby="categoryLabel" @bind-Value="Entry.Category!.Id" Name="category" Orientation="Orientation.Horizontal">
+                @foreach (var category in Categories)
+                {
+                    @if (Entry.Category?.Id == category.Id)
+                    {
+                        <FluentRadio Value="category.Id" Checked="true" Required="true">@category.Name</FluentRadio>
+                    }
+                    else
+                    {
+                        <FluentRadio Value="category.Id" Required="true">@category.Name</FluentRadio>
+                    }
+                }
+            </FluentRadioGroup>
+            <FluentValidationMessage For="() => Entry.Category.Id" />
+        </FluentGridItem>
+
+    </FluentGrid>
+    <FluentButton Type="ButtonType.Submit" Appearance="Appearance.Accent">Submit</FluentButton>
+    <FluentButton Type="ButtonType.Button" Appearance="Appearance.Outline" OnClick="@(() => NavManager.NavigateTo("/"))">Back</FluentButton>
+</EditForm>
+
+@code {
+    [Parameter]
+    public int? EntryId { get; set; }
+
+    [SupplyParameterFromForm]
+    public BalanceEntryDto Entry { get; set; } = new BalanceEntryDto() { Category = new CategoryDto() };
+
+    private CategoryDto[] Categories { get; set; } = [];
+    private string Expenses
+    {
+        get
+        {
+            return _expenses.ToString();
+        }
+        set
+        {
+            _expenses = bool.Parse(value);
+        }
+    }
+    private bool _expenses = true;
+    protected override async Task OnInitializedAsync()
+    {
+        if (!EntryId.HasValue)
+        {
+            Entry.EntryDate = DateTime.Now;
+            if (Categories != null && Categories.Length > 0)
+            {
+                Entry.Category = Categories.First();
+            }
+            Categories = await CategoryService.GetCategoriesAsync(_expenses);
+        }
+        else
+        {
+            var entry = await BalanceService.GetBalanceEntryAsync(EntryId.Value);
+            if (entry == null)
+            {
+                ToastService.ShowError("Record not found!");
+                NavManager.NavigateTo("/");
+                return;
+            }
+
+            Entry = entry;
+            _expenses = entry.Amount > 0 ? false : true;
+            Categories = await CategoryService.GetCategoriesAsync(_expenses);
+            Entry.Amount = Entry.Amount > 0 ? Entry.Amount : -Entry.Amount;
+        }
+    }
+
+    private async Task OnExpensesChange(ChangeEventArgs e)
+    {
+        Expenses = e.Value?.ToString() ?? false.ToString();
+
+        Categories = await CategoryService.GetCategoriesAsync(_expenses);
+        StateHasChanged();
+    }
+
+    private async Task SaveEntryAsync(EditContext editContext)
+    {
+        try
+        {
+            if (_expenses && Entry.Amount >= 0)
+            {
+                Entry.Amount = -Entry.Amount;
+            }
+            if (EntryId == null || !EntryId.HasValue)
+            {
+                var createdEntity = await BalanceService.CreateBalanceEntryAsync(Entry);
+                ToastService.ShowInfo("BalanceEntry was created successfully");
+                NavManager.NavigateTo("/");
+                return;
+            }
+
+
+            var editedEntry = await BalanceService.EditEntryAsync(EntryId.Value, Entry);
+            ToastService.ShowInfo("BalanceEntry was edited successfully");
+            NavManager.NavigateTo("/");
+        }
+        catch (Exception e)
+        {
+            ToastService.ShowError($"Exception occured:{e}");
+        }
+    }
+}

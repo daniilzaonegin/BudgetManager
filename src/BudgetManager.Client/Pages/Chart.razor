@@ -1,0 +1,99 @@
+﻿@page "/chart"
+@rendermode InteractiveAuto
+@using ApexCharts
+@using System.Globalization
+@inject IBalanceService ApiClient
+<FluentToolbar aria-labelledby="toolbar-label" id="toolbar-fluent-components-two">
+    <FluentDatePicker Label="Balance Dates" Value="@_dateFrom" ValueChanged="@changeDateFromValue" Culture="@CultureInfo.GetCultureInfo("de-DE")" />
+    <FluentDatePicker AriaLabel="To" Value="@_dateTo" ValueChanged="@changeDateToValue" Culture="@CultureInfo.GetCultureInfo("de-DE")" />
+    <FluentSelect TOption="Boolean"
+                  Label="Ausgaben?"
+                  Items="@(new[]{true, false})"
+                  Id="expenses-listbox"
+                  Width="115px"
+                  Height="250px"
+                  OptionValue="@(p => p.ToString())"
+                  OptionText="@(p => p == true ? "Ausgaben" : "Einkomen")"
+                  Value="@_expenses"
+                  @onchange="OnExpensesChange" />
+</FluentToolbar>
+<div style="height:90%">
+    @if (Data != null)
+    {
+        <ApexChart @ref="_apexChart" TItem="SummaryData"
+                   Title="Summary of Spends"
+                   Height="@("65%")"
+                   Width="@("90%")">
+
+            <ApexPointSeries TItem="SummaryData"
+                             Items="Data"
+                             Name="Net Profit"
+                             SeriesType="SeriesType.Donut"
+                             XValue="e => e.Category"
+                             YValue="e => e.Amount" />
+
+        </ApexChart>
+
+        <FluentDataGrid @ref="_grid" Items="Data.AsQueryable()" TGridItem="SummaryData" Style="height:35%">
+            <PropertyColumn Property="@(p => p.Category)" Sortable="true" />
+            <PropertyColumn Property="@(p => p.Amount)" Sortable="true" />
+        </FluentDataGrid>
+    }
+</div>
+
+@code {
+    private FluentDataGrid<SummaryData> _grid;
+    private List<SummaryData>? Data { get; set; }
+    private DateTime _dateFrom { get; set; } = DateTime.Now.StartOfMonth(new System.Globalization.CultureInfo("de-De"));
+    private DateTime _dateTo { get; set; } = DateTime.Now.Date;
+    public string _expenses = false.ToString();
+    private ApexChart<SummaryData> _apexChart;
+
+    protected async override Task OnInitializedAsync()
+    {
+        Data = await GetData();
+        await base.OnInitializedAsync();
+    }
+
+    private async Task changeDateToValue(DateTime? value)
+    {
+        if (value == null) return;
+        _dateTo = value.Value;
+        Data = null;
+        Data = await GetData();
+        // await _apexChart.UpdateOptionsAsync(true, true, false);
+    }
+
+    private async Task changeDateFromValue(DateTime? value)
+    {
+        if (value == null) return;
+        _dateFrom = value.Value;
+        Data = null;
+        Data = await GetData();
+        // await _apexChart.UpdateOptionsAsync(true, true, false);
+
+    }
+
+    private async Task<List<SummaryData>> GetData()
+    {
+        bool expenses = _expenses == true.ToString() ? true : false;
+        var result = await ApiClient.GetSummaryDataAsync(_dateFrom, _dateTo, "Category", expenses);
+        return result.ToList();
+    }
+
+    private async Task OnExpensesChange(ChangeEventArgs e)
+    {
+        _expenses = e.Value?.ToString() ?? false.ToString();
+        Data = null;
+        Data = await GetData();
+
+        // await _apexChart.UpdateSeriesAsync(true);
+        // fixes the values
+        // await _apexChart.UpdateOptionsAsync(true, true, false);
+        // kinda fixes the animation: not always smooth
+        // await _apexChart.RenderAsync(); Data = (await GetData()).ToList();
+        // await _apexChart.RenderAsync();
+        // StateHasChanged();
+    }
+
+}

@@ -1,0 +1,91 @@
+﻿@page "/"
+@using Microsoft.AspNetCore.Authorization
+@using System.Globalization
+@attribute [Authorize]
+@rendermode InteractiveAuto
+@inject IBalanceService ApiClient
+@inject NavigationManager NavManager
+@* <FluentStack HorizontalGap="10" Width="30px"> *@
+<FluentToolbar aria-labelledby="toolbar-label" id="toolbar-external-label">
+    <FluentDatePicker Label="Balance Dates" Value="@_dateFrom" ValueChanged="@changeDateFromValue" Culture="@CultureInfo.GetCultureInfo("de-DE")" />
+    <FluentDatePicker AriaLabel="To" Value="@_dateTo" ValueChanged="changeDateToValue" Culture="@CultureInfo.GetCultureInfo("de-DE")" />
+    <FluentButton Appearance="Appearance.Accent" OnClick="OpenCreateWindow">Create New Entry</FluentButton>
+</FluentToolbar>
+@* </FluentStack> *@
+@if (_balanceItemsProvider == null)
+{
+    <p><em>Loading...</em></p>
+}
+else
+{
+    <div style="height: calc(100vh - 140px); overflow:auto;" tabindex="-1">
+        <FluentDataGrid @ref="_grid" ItemsProvider="_balanceItemsProvider" Virtualize="true"
+                GenerateHeader="GenerateHeaderOption.Sticky" TGridItem="BalanceEntryDto">
+            <PropertyColumn Property="@(p => p.Amount)" Sortable="true" />
+            <PropertyColumn Property="@(p => p.EntryDate)" Sortable="true" />
+            <PropertyColumn Property="@(p => p.Description)" Sortable="true" />
+            <PropertyColumn Property="@(p => p.Category != null ? p.Category.Name : "")" Title="Category" Sortable="true" />
+            <TemplateColumn Title="Actions" Align="@Align.End">
+                <FluentButton IconEnd="@(new Icons.Regular.Size16.Edit())" OnClick="@(() => NavManager.NavigateTo($"/edit/{context.Id}"))" />
+                <FluentButton IconEnd="@(new Icons.Regular.Size16.Delete())" OnClick="@(async () => await DeleteEntryAsync(context.Id))" />
+            </TemplateColumn>
+        </FluentDataGrid>
+    </div>
+}
+@code {
+    private FluentDataGrid<BalanceEntryDto> _grid;
+    private DateTime? _dateFrom;
+    private DateTime? _dateTo;
+    private GridItemsProvider<BalanceEntryDto> _balanceItemsProvider;
+
+    protected override void OnInitialized()
+    {
+        _dateFrom = DateTime.Now.AddMonths(-1).Date;
+        _dateTo = DateTime.Now.Date;
+        // Define the GridRowsDataProvider. Its job is to convert QuickGrid's GridRowsDataProviderRequest into a query against
+        // an arbitrary data soure. In this example, we need to translate query parameters into the particular URL format
+        // supported by the external JSON API. It's only possible to perform whatever sorting/filtering/etc is supported
+        // by the external API.
+        _balanceItemsProvider = async req =>
+        {
+            Filter filter = new Filter
+                {
+                    From = _dateFrom,
+                    To = _dateTo,
+                    SortBy = req.SortByColumn?.Title,
+                    Order = req.SortByAscending ? "asc" : "desc",
+                    StartIndex = req.StartIndex,
+                    RowCount = req.Count ?? 20
+                };
+
+            var response = await ApiClient.GetBalanceEntriesAsync(filter);
+            return GridItemsProviderResult.From(
+                items: response.Items,
+                totalItemCount: response.TotalRowCount);
+        };
+    }
+
+    private void OpenCreateWindow()
+    {
+        NavManager.NavigateTo("/create/entry");
+    }
+
+    private async Task changeDateToValue(DateTime? value)
+    {
+        _dateTo = value;
+        await _grid.RefreshDataAsync();
+
+    }
+    private async Task changeDateFromValue(DateTime? value)
+    {
+        _dateFrom = value;
+        await _grid.RefreshDataAsync();
+    }
+
+    private async Task DeleteEntryAsync(int id)
+    {
+        await ApiClient.DeleteEntryAsync(id);
+        await _grid.RefreshDataAsync();
+
+    }
+}
