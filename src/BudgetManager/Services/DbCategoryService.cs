@@ -16,9 +16,11 @@ namespace BudgetManager.Services
             _mapper = mapper;
         }
 
-        public Task<CategoryDto[]> GetCategoriesAsync()
+        public Task<CategoryDto[]> GetCategoriesAsync(bool expenses = true)
         {
-            return _mapper.ProjectTo<CategoryDto>(_dbContext.Categories).ToArrayAsync();
+            return _mapper.ProjectTo<CategoryDto>(
+                    _dbContext.Categories.Where(c => c.ForExpenses == expenses))
+            .ToArrayAsync();
         }
     }
 }

@@ -97,6 +97,7 @@ public class DbBalanceService : IBalanceService
     {
         return _dbContext.BalanceEntries.Include(p => p.Category)
             .Where(e => expenses ? e.Amount <= 0 : e.Amount > 0)
+            .Where(e => e.EntryDate >= from && e.EntryDate < to)
             .GroupBy(GetGrouping(groupBy))
             .Select(gr =>
                 new SummaryData
@@ -123,6 +124,7 @@ public class DbBalanceService : IBalanceService
             "entrydate" => p => p.EntryDate,
             "amount" => p => p.Amount,
             "description" => p => p.Description,
+            "category" => p => p.Category.Name,
             _ => p => p.Id
         };
     }

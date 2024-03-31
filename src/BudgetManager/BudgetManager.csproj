@@ -8,8 +8,8 @@
 	</PropertyGroup>
 
 	<ItemGroup>
-		<ProjectReference Include="..\..\BudgetManager.Shared\BudgetManager.Shared.csproj" />
 		<ProjectReference Include="..\BudgetManager.Client\BudgetManager.Client.csproj" />
+		<ProjectReference Include="..\BudgetManager.Shared\BudgetManager.Shared.csproj" />
 		<PackageReference Include="AutoMapper" Version="12.0.1" />
 		<PackageReference Include="AutoMapper.Extensions.Microsoft.DependencyInjection" Version="12.0.1" />
 		<PackageReference Include="Blazor-ApexCharts" Version="2.3.3" />

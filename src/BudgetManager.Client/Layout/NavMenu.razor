@@ -13,23 +13,23 @@
             <Authorized>
                 <FluentNavLink Href="/chart" Match="NavLinkMatch.All" Icon="@(new Icons.Regular.Size20.ChartMultiple())" IconColor="Color.Accent">Charts</FluentNavLink>
                 <FluentNavLink>@context.User.Identity?.Name</FluentNavLink>
-                    <form action="Account/Logout" method="post">
-                        <AntiforgeryToken />
-                        <input type="hidden" name="ReturnUrl" value="@currentUrl" />
-                        <FluentButton Type="ButtonType.Submit"
-                                      Style="width: 100%;" IconStart="@(new Icons.Regular.Size16.ArrowEnter().WithColor(Color.Neutral))"
-                                      Title="Logout" />
-                    </form>
-                </Authorized>
-                <NotAuthorized>
-                    <FluentNavLink Href="Account/Login" IconColor="@Color.Neutral" Icon="@((new Icons.Regular.Size16.ArrowExport()).WithColor(Color.Neutral))">Login</FluentNavLink>
-                </NotAuthorized>
-            </AuthorizeView>
-        </FluentNavMenu>
+                <form action="Account/Logout" method="post">
+                    <AntiforgeryToken />
+                    <input type="hidden" name="ReturnUrl" value="@currentUrl" />
+                    <FluentButton Type="ButtonType.Submit"
+                                  Style="width: 100%;" IconStart="@(new Icons.Regular.Size16.ArrowEnter().WithColor(Color.Neutral))"
+                                  Title="Logout" />
+                </form>
+            </Authorized>
+            <NotAuthorized>
+                <FluentNavLink Href="Account/Login" IconColor="@Color.Neutral" Icon="@((new Icons.Regular.Size16.ArrowExport()).WithColor(Color.Neutral))">Login</FluentNavLink>
+            </NotAuthorized>
+        </AuthorizeView>
+    </FluentNavMenu>
 
-    </nav>
+</nav>
 
-    @code {
+@code {
     private string? currentUrl;
     private bool _expanded = false;
     protected override void OnInitialized()

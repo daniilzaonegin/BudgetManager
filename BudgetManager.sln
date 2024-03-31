@@ -3,11 +3,11 @@ Microsoft Visual Studio Solution File, Format Version 12.00
 # Visual Studio Version 17
 VisualStudioVersion = 17.8.34316.72
 MinimumVisualStudioVersion = 10.0.40219.1
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "BudgetManager", "BudgetManager\BudgetManager\BudgetManager.csproj", "{DBD0850F-E869-46E6-8423-BED8A903518D}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "BudgetManager", "src\BudgetManager\BudgetManager.csproj", "{DBD0850F-E869-46E6-8423-BED8A903518D}"
 EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "BudgetManager.Client", "BudgetManager\BudgetManager.Client\BudgetManager.Client.csproj", "{DADFAA2D-7B87-4116-9D63-2F7B08E8C7C9}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "BudgetManager.Client", "src\BudgetManager.Client\BudgetManager.Client.csproj", "{DADFAA2D-7B87-4116-9D63-2F7B08E8C7C9}"
 EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "BudgetManager.Shared", "BudgetManager.Shared\BudgetManager.Shared.csproj", "{E979F8A6-03A3-491A-A31F-0500058585B4}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "BudgetManager.Shared", "src\BudgetManager.Shared\BudgetManager.Shared.csproj", "{E979F8A6-03A3-491A-A31F-0500058585B4}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution

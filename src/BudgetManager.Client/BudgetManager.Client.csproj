@@ -17,7 +17,7 @@
   </ItemGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\..\BudgetManager.Shared\BudgetManager.Shared.csproj" />
+    <ProjectReference Include="..\BudgetManager.Shared\BudgetManager.Shared.csproj" />
   </ItemGroup>
 
   <ItemGroup>

@@ -2,6 +2,6 @@
 {
     public interface ICategoryService
     {
-        Task<CategoryDto[]> GetCategoriesAsync();
+        Task<CategoryDto[]> GetCategoriesAsync(bool expenses = true);
     }
 }

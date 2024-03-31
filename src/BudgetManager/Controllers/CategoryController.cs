@@ -18,8 +18,8 @@ public class CategoryController : ControllerBase
 
     [HttpGet]
     [ProducesResponseType(StatusCodes.Status200OK, Type = typeof(CategoryDto[]))]
-    public async Task<IActionResult> GetCategoriesAsync()
+    public async Task<IActionResult> GetCategoriesAsync(bool expenses = true)
     {
-        return Ok(await _categoryService.GetCategoriesAsync());
+        return Ok(await _categoryService.GetCategoriesAsync(expenses));
     }
 }

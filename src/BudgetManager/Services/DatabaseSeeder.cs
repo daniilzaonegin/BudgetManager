@@ -8,6 +8,7 @@ public class DatabaseSeeder : IHostedService
     private readonly IServiceScopeFactory _scopeFactory;
     private readonly Fakers _fakers;
     private readonly string[] _categoryNames = ["Lebensmittel", "Kultur", "Restaurants", "Bildung", "Nebenkosten", "Haushalt", "Reisen"];
+    private readonly string[] _revenueCategoryNames = ["Monatsgehalt", "Zuschlag", "Bargeld", "Sonstiges"];
 
     public DatabaseSeeder(IServiceScopeFactory scopeFactory, Fakers fakers)
     {
@@ -26,7 +27,12 @@ public class DatabaseSeeder : IHostedService
             {
                 foreach (var name in _categoryNames)
                 {
-                    var category = new Category() { Name = name };
+                    var category = new Category { Name = name, ForExpenses = true };
+                    dbContext.Categories.Add(category);
+                }
+                foreach (var name in _revenueCategoryNames)
+                {
+                    var category = new Category { Name = name, ForExpenses = false };
                     dbContext.Categories.Add(category);
                 }
                 await dbContext.SaveChangesAsync();
@@ -35,8 +41,16 @@ public class DatabaseSeeder : IHostedService
             var balanceEntries = balanceEntryGenerator.Generate(200);
             foreach (var balanceEntry in balanceEntries)
             {
-                string categoryName = _fakers.GetCategoryFaker().Generate(1)?[0].Name!;
-                balanceEntry.CategoryId = dbContext.Categories.FirstOrDefault(c => c.Name == categoryName)!.Id;
+                if (balanceEntry.Amount > 0)
+                {
+                    string categoryName = _fakers.GetCategoryFaker(true).Generate(1)?[0].Name!;
+                    balanceEntry.CategoryId = dbContext.Categories.FirstOrDefault(c => c.Name == categoryName)!.Id;
+                }
+                else
+                {
+                    string categoryName = _fakers.GetCategoryFaker(false).Generate(1)?[0].Name!;
+                    balanceEntry.CategoryId = dbContext.Categories.FirstOrDefault(c => c.Name == categoryName)!.Id;
+                }
             }
             dbContext.BalanceEntries.AddRange(balanceEntries);
             await dbContext.SaveChangesAsync(cancellationToken);

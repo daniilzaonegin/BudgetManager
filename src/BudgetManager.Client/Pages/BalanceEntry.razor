@@ -21,6 +21,18 @@ else
 
     <FluentGrid Style="margin-bottom: 1em">
         <FluentGridItem md="7" sm="12">
+            <FluentSelect TOption="Boolean"
+                          Label="Ausgaben?"
+                          Items="@(new[]{true, false})"
+                          Id="expenses-listbox"
+                          Width="115px"
+                          Height="150px"
+                          OptionValue="@(p => p.ToString())"
+                          OptionText="@(p => p == true ? "Ausgaben" : "Einkomen")"
+                          Value="@Expenses"
+                          @onchange="OnExpensesChange" />
+        </FluentGridItem>
+        <FluentGridItem md="7" sm="12">
             <FluentDatePicker Style="width: 100%" Name="EntryDate" @bind-Value="Entry.EntryDate" Id="entryDate" Label="Entry Date" Required></FluentDatePicker>
             <FluentValidationMessage For="()=> Entry.EntryDate" />
         </FluentGridItem>
@@ -29,7 +41,7 @@ else
             <FluentValidationMessage For="()=> Entry.Description" />
         </FluentGridItem>
         <FluentGridItem md="7" sm="12">
-            <FluentNumberField Style="width:100%" Name="Amount" @bind-Value="Entry.Amount" Id="entryAmount" Label="Amount" Required></FluentNumberField>
+            <FluentNumberField Style="width:100%" Name="Amount" @bind-Value="Entry.Amount" Id="entryAmount" Label="Amount" Min="0" Required></FluentNumberField>
             <FluentValidationMessage For="()=> Entry.Amount" />
         </FluentGridItem>
         <FluentGridItem md="7" sm="12">
@@ -63,10 +75,20 @@ else
     public BalanceEntryDto Entry { get; set; } = new BalanceEntryDto() { Category = new CategoryDto() };
 
     private CategoryDto[] Categories { get; set; } = [];
-
+    private string Expenses
+    {
+        get
+        {
+            return _expenses.ToString();
+        }
+        set
+        {
+            _expenses = bool.Parse(value);
+        }
+    }
+    private bool _expenses = true;
     protected override async Task OnInitializedAsync()
     {
-        Categories = await CategoryService.GetCategoriesAsync();
         if (!EntryId.HasValue)
         {
             Entry.EntryDate = DateTime.Now;
@@ -74,6 +96,7 @@ else
             {
                 Entry.Category = Categories.First();
             }
+            Categories = await CategoryService.GetCategoriesAsync(_expenses);
         }
         else
         {
@@ -84,14 +107,30 @@ else
                 NavManager.NavigateTo("/");
                 return;
             }
+
             Entry = entry;
+            _expenses = entry.Amount > 0 ? false : true;
+            Categories = await CategoryService.GetCategoriesAsync(_expenses);
+            Entry.Amount = Entry.Amount > 0 ? Entry.Amount : -Entry.Amount;
         }
+    }
+
+    private async Task OnExpensesChange(ChangeEventArgs e)
+    {
+        Expenses = e.Value?.ToString() ?? false.ToString();
+
+        Categories = await CategoryService.GetCategoriesAsync(_expenses);
+        StateHasChanged();
     }
 
     private async Task SaveEntryAsync(EditContext editContext)
     {
         try
         {
+            if (_expenses && Entry.Amount >= 0)
+            {
+                Entry.Amount = -Entry.Amount;
+            }
             if (EntryId == null || !EntryId.HasValue)
             {
                 var createdEntity = await BalanceService.CreateBalanceEntryAsync(Entry);
@@ -99,6 +138,7 @@ else
                 NavManager.NavigateTo("/");
                 return;
             }
+
 
             var editedEntry = await BalanceService.EditEntryAsync(EntryId.Value, Entry);
             ToastService.ShowInfo("BalanceEntry was edited successfully");

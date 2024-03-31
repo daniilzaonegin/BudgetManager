@@ -14,9 +14,9 @@ public class ApiCategoryService : ICategoryService
         _httpClient = httpClient;
     }
 
-    public async Task<CategoryDto[]> GetCategoriesAsync()
+    public async Task<CategoryDto[]> GetCategoriesAsync(bool expenses)
     {
-        string path = "api/category";
+        string path = $"api/category?{nameof(expenses)}={expenses}";
 
         var categories = await _httpClient.GetFromJsonAsync<CategoryDto[]>(path);
 
