@@ -25,7 +25,7 @@ public class DatabaseMigrator : IHostedService
         {
             using var scope = _scopeFactory.CreateScope();
             _logger.LogInformation("Applying database migrations");
-            var dbContext = scope.ServiceProvider.GetRequiredService<DbContext>();
+            var dbContext = scope.ServiceProvider.GetRequiredService<ApplicationDbContext>();
             await dbContext.Database.MigrateAsync(cancellationToken);
             _logger.LogInformation("Database migrations successfully migrated.");
         }
