@@ -34,7 +34,7 @@ jobs:
         with:
           push: true
           file: src/BudgetManager/Dockerfile
-          tags: zaoneg/BudgetManager:${{ env.ImageVersion }}
+          tags: zaoneg/budgetmanager:${{ env.ImageVersion }}
 
       # - name: Log in to Azure
       #   uses: azure/login@v1
