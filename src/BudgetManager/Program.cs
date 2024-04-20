@@ -82,6 +82,15 @@ app.UseForwardedHeaders(new ForwardedHeadersOptions
     ForwardedHeaders = ForwardedHeaders.XForwardedProto |
         ForwardedHeaders.XForwardedHost
 });
+app.Use((context, next) =>
+{
+    //app is behind the proxy, lets pretend, that request is http, not https
+    if (context.Request.Protocol == "https")
+    {
+        context.Request.Protocol = "http";
+    }
+    return next();
+});
 app.UseHttpsRedirection();
 
 app.UseStaticFiles();
