@@ -5,6 +5,7 @@
     <FluentSpacer />
     <FluentButton IconEnd="@_themeIcon" OnClick="@(() => ChangeTheme())" />
     <FluentDesignTheme @bind-Mode="@Mode" StorageName="budgetManager_theme" />
+    <FluentToastProvider RemoveToastsOnNavigation="false" @rendermode="InteractiveAuto" />
 </FluentHeader>
 
 @code {
