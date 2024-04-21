@@ -11,8 +11,9 @@ builder.Services.AddAuthorizationCore();
 builder.Services.AddFluentUIComponents();
 builder.Services.AddCascadingAuthenticationState();
 builder.Services.AddSingleton<AuthenticationStateProvider, PersistentAuthenticationStateProvider>();
-Uri backendApiUri = builder.Configuration.GetValue<Uri>("backendApiUri") ?? throw new ApplicationException("backendUri is not configured");
-builder.Services.AddHttpClient<IBalanceService,ApiBalanceService>(c => c.BaseAddress = backendApiUri);
-builder.Services.AddHttpClient<ICategoryService, ApiCategoryService>(c => c.BaseAddress = backendApiUri);
+//uncomment this to read backendApiUri from configuration
+//Uri backendApiUri = builder.Configuration.GetValue<Uri>("backendApiUri") ?? throw new ApplicationException("backendUri is not configured");
+builder.Services.AddHttpClient<IBalanceService,ApiBalanceService>(c => c.BaseAddress = new Uri(builder.HostEnvironment.BaseAddress));
+builder.Services.AddHttpClient<ICategoryService, ApiCategoryService>(c => c.BaseAddress = new Uri(builder.HostEnvironment.BaseAddress));
 
 await builder.Build().RunAsync();
