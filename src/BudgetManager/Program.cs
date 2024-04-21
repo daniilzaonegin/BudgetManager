@@ -18,6 +18,8 @@ builder.Services.AddRazorComponents()
     .AddInteractiveWebAssemblyComponents();
 
 builder.Services.AddControllers();
+builder.Services.Configure<ForwardedHeadersOptions>(options =>
+	options.ForwardedHeaders = ForwardedHeaders.XForwardedProto);
 builder.Services.AddAutoMapper(typeof(Program));
 builder.Services.AddHttpClient();
  
@@ -65,6 +67,7 @@ if (builder.Environment.IsDevelopment())
 
 var app = builder.Build();
 
+app.UseForwardedHeaders();
 // Configure the HTTP request pipeline.
 if (app.Environment.IsDevelopment())
 {
@@ -77,11 +80,6 @@ else
     // The default HSTS value is 30 days. You may want to change this for production scenarios, see https://aka.ms/aspnetcore-hsts.
     app.UseHsts();
 }
-app.UseForwardedHeaders(new ForwardedHeadersOptions
-{
-    ForwardedHeaders = ForwardedHeaders.XForwardedProto |
-        ForwardedHeaders.XForwardedHost
-});
 app.Use((context, next) =>
 {
     //app is behind the proxy, lets pretend, that request is http, not https
