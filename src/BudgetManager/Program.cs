@@ -19,7 +19,13 @@ builder.Services.AddRazorComponents()
 
 builder.Services.AddControllers();
 builder.Services.Configure<ForwardedHeadersOptions>(options =>
-	options.ForwardedHeaders = ForwardedHeaders.XForwardedProto);
+{
+    options.ForwardedHeaders = ForwardedHeaders.XForwardedProto;
+    // Only loopback proxies are allowed by default. Clear that restriction because forwarders are
+    // being enabled by explicit configuration.
+    options.KnownNetworks.Clear();
+    options.KnownProxies.Clear();
+});
 builder.Services.AddAutoMapper(typeof(Program));
 builder.Services.AddHttpClient();
  
@@ -80,15 +86,6 @@ else
     // The default HSTS value is 30 days. You may want to change this for production scenarios, see https://aka.ms/aspnetcore-hsts.
     app.UseHsts();
 }
-app.Use((context, next) =>
-{
-    //app is behind the proxy, lets pretend, that request is http, not https
-    if (context.Request.Protocol == "https")
-    {
-        context.Request.Protocol = "http";
-    }
-    return next();
-});
 app.UseHttpsRedirection();
 
 app.UseStaticFiles();
