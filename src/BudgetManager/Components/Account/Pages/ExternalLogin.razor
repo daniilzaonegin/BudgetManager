@@ -7,6 +7,7 @@
 @using Microsoft.AspNetCore.Identity
 @using Microsoft.AspNetCore.WebUtilities
 @using BudgetManager.Data
+@using Microsoft.EntityFrameworkCore
 
 @inject SignInManager<ApplicationUser> SignInManager
 @inject UserManager<ApplicationUser> UserManager
@@ -23,7 +24,7 @@
 <h2>Associate your @ProviderDisplayName account.</h2>
 <hr />
 
-<div  class="alert alert-info">
+<div class="alert alert-info">
     You've successfully authenticated with <strong>@ProviderDisplayName</strong>.
     Please enter an email address for this site below and click the Register button to finish
     logging in.
@@ -34,7 +35,7 @@
         <EditForm Model="Input" OnValidSubmit="OnValidSubmitAsync" FormName="confirmation" method="post">
             <DataAnnotationsValidator />
             <ValidationSummary class="text-danger" role="alert" />
-            <FluentTextField Name="Input.Email" @bind-Value="Input.Email" AutoComplete="email" Placeholder="Please enter your email." Label="Email" Style="width: 100%;"/>
+            <FluentTextField Name="Input.Email" @bind-Value="Input.Email" AutoComplete="email" Placeholder="Please enter your email." Label="Email" Style="width: 100%;" />
             <ValidationMessage For="() => Input.Email" />
             <FluentButton Type="ButtonType.Submit" Appearance="Appearance.Accent" Style="width: 100%;">Register</FluentButton>
         </EditForm>
@@ -43,6 +44,7 @@
 
 @code {
     public const string LoginCallbackAction = "LoginCallback";
+    private readonly ApplicationDbContext _dbContext;
 
     private string? message;
     private ExternalLoginInfo externalLoginInfo = default!;
@@ -62,6 +64,9 @@
     [SupplyParameterFromQuery]
     private string? Action { get; set; }
 
+    [Inject]
+    public ApplicationDbContext DbContext { get; set; }
+
     private string? ProviderDisplayName => externalLoginInfo.ProviderDisplayName;
 
     protected override async Task OnInitializedAsync()
@@ -72,12 +77,19 @@
         }
 
         var info = await SignInManager.GetExternalLoginInfoAsync();
-        if (info is null)
+        if (info is null || (!info.Principal?.Claims?.Any(c => c.Type == ClaimTypes.Email.ToString()) ?? true))
         {
             RedirectManager.RedirectToWithStatus("Account/Login", "Error loading external login information.", HttpContext);
         }
-
         externalLoginInfo = info;
+        string currentUserEmail = info.Principal!.Claims.First(c => c.Type == ClaimTypes.Email.ToString()).Value;
+        string[]? authorizedUsers = await DbContext.AuthorizedUsers.Select(u => u.UserEmail).ToArrayAsync();
+        if (authorizedUsers == null || !authorizedUsers.Contains(currentUserEmail, StringComparer.OrdinalIgnoreCase))
+        {
+            RedirectManager.RedirectToWithStatus("/Account/InvalidUser",
+                "User with this email is not authorized to login",
+                HttpContext);
+        }
 
         if (HttpMethods.IsGet(HttpContext.Request.Method))
         {

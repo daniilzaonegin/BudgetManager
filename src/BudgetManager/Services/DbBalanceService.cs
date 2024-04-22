@@ -138,7 +138,7 @@ public class DbBalanceService : IBalanceService
         }
         if (filter?.To != null)
         {
-            resultPredicate = resultPredicate.And(p => p.EntryDate <= filter.To);
+            resultPredicate = resultPredicate.And(p => p.EntryDate < filter.To.Value.AddDays(1));
         }
         return resultPredicate;
     }

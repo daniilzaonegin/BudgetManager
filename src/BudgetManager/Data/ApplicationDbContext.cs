@@ -7,7 +7,7 @@ namespace BudgetManager.Data
     {
         public DbSet<BalanceEntry> BalanceEntries { get; set; }
         public DbSet<Category> Categories { get; set; }
-
+        public DbSet<AuthorizedUser> AuthorizedUsers { get; set; }
         protected override void OnModelCreating(ModelBuilder builder)
         {
             builder.Entity<BalanceEntry>().Property(e => e.Description).HasMaxLength(210);

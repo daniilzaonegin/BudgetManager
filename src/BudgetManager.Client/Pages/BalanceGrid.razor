@@ -7,8 +7,8 @@
 @inject NavigationManager NavManager
 @* <FluentStack HorizontalGap="10" Width="30px"> *@
 <FluentToolbar aria-labelledby="toolbar-label" id="toolbar-external-label">
-    <FluentDatePicker Label="Balance Dates" Value="@_dateFrom" ValueChanged="@changeDateFromValue" Culture="@CultureInfo.GetCultureInfo("de-DE")" />
-    <FluentDatePicker AriaLabel="To" Value="@_dateTo" ValueChanged="changeDateToValue" Culture="@CultureInfo.GetCultureInfo("de-DE")" />
+    <FluentDatePicker Label="Balance Dates" Value="@_dateFrom" ValueChanged="@changeDateFromValue" Culture="@CultureInfo.GetCultureInfo("en-DE")" />
+    <FluentDatePicker AriaLabel="To" Value="@_dateTo" ValueChanged="changeDateToValue" Culture="@CultureInfo.GetCultureInfo("en-DE")" />
     <FluentButton Appearance="Appearance.Accent" OnClick="OpenCreateWindow">Create New Entry</FluentButton>
 </FluentToolbar>
 @* </FluentStack> *@
