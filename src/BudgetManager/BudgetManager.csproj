@@ -6,7 +6,7 @@
 		<ImplicitUsings>enable</ImplicitUsings>
 		<UserSecretsId>aspnet-BudgetManager-e8004443-80c0-47e3-a092-96f6f83ff436</UserSecretsId>
 		<DockerDefaultTargetOS>Linux</DockerDefaultTargetOS>
-		<AssemblyVersion>0.1.10</AssemblyVersion>
+		<AssemblyVersion>0.1.11</AssemblyVersion>
 		<DockerfileContext>..\..</DockerfileContext>
 		<DockerComposeProjectPath>..\..\docker-compose.dcproj</DockerComposeProjectPath>
 	</PropertyGroup>
@@ -14,11 +14,10 @@
 	<ItemGroup>
 		<ProjectReference Include="..\BudgetManager.Client\BudgetManager.Client.csproj" />
 		<ProjectReference Include="..\BudgetManager.Shared\BudgetManager.Shared.csproj" />
-		<PackageReference Include="AutoMapper" Version="12.0.1" />
-		<PackageReference Include="AutoMapper.Extensions.Microsoft.DependencyInjection" Version="12.0.1" />
-		<PackageReference Include="Blazor-ApexCharts" Version="2.3.3" />
-		<PackageReference Include="Bogus" Version="35.3.0" />
-		<PackageReference Include="Microsoft.AspNetCore.Authentication.Google" Version="8.0.0" />
+		<PackageReference Include="AutoMapper" Version="13.0.1" />
+		<PackageReference Include="Blazor-ApexCharts" Version="3.3.0" />
+		<PackageReference Include="Bogus" Version="35.5.1" />
+		<PackageReference Include="Microsoft.AspNetCore.Authentication.Google" Version="8.0.6" />
 		<PackageReference Include="Microsoft.AspNetCore.Components.WebAssembly.Server" Version="8.*-*" />
 		<PackageReference Include="Microsoft.AspNetCore.Diagnostics.EntityFrameworkCore" Version="8.*-*" />
 		<PackageReference Include="Microsoft.AspNetCore.Identity.EntityFrameworkCore" Version="8.*-*" />

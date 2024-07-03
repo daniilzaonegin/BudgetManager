@@ -1,6 +1,7 @@
 ﻿using BudgetManager.Client.Pages;
 using BudgetManager.Shared;
 using Microsoft.FluentUI.AspNetCore.Components;
+using Microsoft.FluentUI.AspNetCore.Components.Extensions;
 using System.Net.Http.Json;
 
 namespace BudgetManager.Client.Services;
