@@ -2,6 +2,7 @@
 @rendermode InteractiveAuto
 @using ApexCharts
 @using System.Globalization
+@using Microsoft.FluentUI.AspNetCore.Components.Extensions
 @inject IBalanceService ApiClient
 <FluentToolbar aria-labelledby="toolbar-label" id="toolbar-fluent-components-two">
     <FluentDatePicker Label="Balance Dates" Value="@_dateFrom" ValueChanged="@changeDateFromValue" Culture="@CultureInfo.GetCultureInfo("de-DE")" />

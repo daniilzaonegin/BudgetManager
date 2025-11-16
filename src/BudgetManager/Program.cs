@@ -15,7 +15,8 @@ var builder = WebApplication.CreateBuilder(args);
 // Add services to the container.
 builder.Services.AddRazorComponents()
     .AddInteractiveServerComponents()
-    .AddInteractiveWebAssemblyComponents();
+    .AddInteractiveWebAssemblyComponents()
+    .AddAuthenticationStateSerialization(opt => opt.SerializeAllClaims = true);
 
 builder.Services.AddControllers();
 builder.Services.Configure<ForwardedHeadersOptions>(options =>
@@ -28,14 +29,13 @@ builder.Services.Configure<ForwardedHeadersOptions>(options =>
 });
 builder.Services.AddAutoMapper(typeof(Program));
 builder.Services.AddHttpClient();
- 
+
 builder.Services.AddFluentUIComponents();
 builder.Services.AddDataGridEntityFrameworkAdapter();
 
 builder.Services.AddCascadingAuthenticationState();
 builder.Services.AddScoped<IdentityUserAccessor>();
 builder.Services.AddScoped<IdentityRedirectManager>();
-builder.Services.AddScoped<AuthenticationStateProvider, PersistingRevalidatingAuthenticationStateProvider>();
 builder.Services.AddAuthentication(options =>
     {
         options.DefaultScheme = IdentityConstants.ApplicationScheme;
@@ -50,7 +50,7 @@ builder.Services.AddAuthentication().AddGoogle(googleOptions =>
     googleOptions.Scope.Add("https://www.googleapis.com/auth/userinfo.profile");
 });
 
-var connectionString = builder.Configuration.GetConnectionString("DefaultConnection") 
+var connectionString = builder.Configuration.GetConnectionString("DefaultConnection")
     ?? throw new InvalidOperationException("Connection string 'DefaultConnection' not found.");
 
 builder.Services.AddDbContext<ApplicationDbContext>(options =>
@@ -88,7 +88,7 @@ else
 }
 app.UseHttpsRedirection();
 
-app.UseStaticFiles();
+app.MapStaticAssets();
 app.UseAntiforgery();
 
 app.MapControllers().RequireAuthorization();
