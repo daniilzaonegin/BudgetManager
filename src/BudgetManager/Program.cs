@@ -2,9 +2,9 @@ using BudgetManager.Client.Pages;
 using BudgetManager.Components;
 using BudgetManager.Components.Account;
 using BudgetManager.Data;
+using BudgetManager.Profiles;
 using BudgetManager.Services;
 using BudgetManager.Shared;
-using Microsoft.AspNetCore.Components.Authorization;
 using Microsoft.AspNetCore.HttpOverrides;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
@@ -24,10 +24,10 @@ builder.Services.Configure<ForwardedHeadersOptions>(options =>
     options.ForwardedHeaders = ForwardedHeaders.XForwardedProto;
     // Only loopback proxies are allowed by default. Clear that restriction because forwarders are
     // being enabled by explicit configuration.
-    options.KnownNetworks.Clear();
+    options.KnownIPNetworks.Clear();
     options.KnownProxies.Clear();
 });
-builder.Services.AddAutoMapper(typeof(Program));
+builder.Services.AddAutoMapper(c => c.AddProfile<DtoProfile>());
 builder.Services.AddHttpClient();
 
 builder.Services.AddFluentUIComponents();
