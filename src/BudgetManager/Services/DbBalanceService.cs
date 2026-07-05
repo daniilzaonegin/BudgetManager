@@ -134,11 +134,11 @@ public class DbBalanceService : IBalanceService
         var resultPredicate = PredicateBuilder.True<BalanceEntry>();
         if (filter?.From != null)
         {
-            resultPredicate = resultPredicate.And(p => p.EntryDate >= filter.From);
+            resultPredicate = resultPredicate.And(p => p.EntryDate >= filter.From.Value.Date);
         }
         if (filter?.To != null)
         {
-            resultPredicate = resultPredicate.And(p => p.EntryDate <= filter.To);
+            resultPredicate = resultPredicate.And(p => p.EntryDate.Date <= filter.To.Value.Date);
         }
         return resultPredicate;
     }
