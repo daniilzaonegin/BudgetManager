@@ -2,6 +2,7 @@
 using BudgetManager.Shared;
 using Microsoft.FluentUI.AspNetCore.Components;
 using System.Net.Http.Json;
+using Microsoft.FluentUI.AspNetCore.Components.Extensions;
 
 namespace BudgetManager.Client.Services;
 

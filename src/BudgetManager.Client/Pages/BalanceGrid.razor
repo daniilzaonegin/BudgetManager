@@ -5,38 +5,72 @@
 @rendermode InteractiveAuto
 @inject IBalanceService ApiClient
 @inject NavigationManager NavManager
-@* <FluentStack HorizontalGap="10" Width="30px"> *@
+<style>
+    /* 0px 1fr 0px */
+    /* .fluent-data-grid[mobile] td[role=gridcell]:nth-child(1), */
+    /*     .fluent-data-grid[mobile] th.column-header,
+                                .fluent-data-grid[mobile] td[role=gridcell] {
+                                    display: none;
+                                } */
+</style>
+
 <FluentToolbar aria-labelledby="toolbar-label" id="toolbar-external-label">
     <FluentDatePicker Label="Balance Dates" Value="@_dateFrom" ValueChanged="@changeDateFromValue" Culture="@CultureInfo.GetCultureInfo("de-DE")" />
     <FluentDatePicker AriaLabel="To" Value="@_dateTo" ValueChanged="changeDateToValue" Culture="@CultureInfo.GetCultureInfo("de-DE")" />
     <FluentButton Appearance="Appearance.Accent" OnClick="OpenCreateWindow">Create New Entry</FluentButton>
 </FluentToolbar>
-@* </FluentStack> *@
+
 @if (_balanceItemsProvider == null)
 {
     <p><em>Loading...</em></p>
 }
 else
 {
-    <div style="height: calc(100vh - 140px); overflow:auto;" tabindex="-1">
-        <FluentDataGrid @ref="_grid" ItemsProvider="_balanceItemsProvider" Virtualize="true"
-                GenerateHeader="GenerateHeaderOption.Sticky" TGridItem="BalanceEntryDto">
-            <PropertyColumn Property="@(p => p.Amount)" Sortable="true" />
-            <PropertyColumn Property="@(p => p.EntryDate)" Sortable="true" />
-            <PropertyColumn Property="@(p => p.Description)" Sortable="true" />
-            <PropertyColumn Property="@(p => p.Category != null ? p.Category.Name : "")" Title="Category" Sortable="true" />
-            <TemplateColumn Title="Actions" Align="@Align.End">
-                <FluentButton IconEnd="@(new Icons.Regular.Size16.Edit())" OnClick="@(() => NavManager.NavigateTo($"/edit/{context.Id}"))" />
-                <FluentButton IconEnd="@(new Icons.Regular.Size16.Delete())" OnClick="@(async () => await DeleteEntryAsync(context.Id))" />
-            </TemplateColumn>
-        </FluentDataGrid>
-    </div>
+    @* <div style="height: calc(100vh - 140px); overflow:auto;" tabindex="-1"> *@
+    <FluentGrid Style="height: calc(100vh - 140px); overflow:auto;" Justify="JustifyContent.FlexStart" OnBreakpointEnter="ScreenSizeChanged">
+        <FluentGridItem xs="12">
+            <FluentDataGrid @ref="_grid" ItemsProvider="_balanceItemsProvider" Virtualize="true"
+                            GenerateHeader="GenerateHeaderOption.Sticky" mobile="@SmallScreen"
+                            TGridItem="BalanceEntryDto" ItemSize="45"
+                            GridTemplateColumns=@(SmallScreen ? "0.3fr 0.5fr 0.2fr 0.2fr" : "0.5fr 0.5fr 1fr 0.5fr 0.25fr")>
+                @if (!SmallScreen)
+                {
+                    <PropertyColumn Property="@(p => p.Amount)" Sortable="true" />
+                    <PropertyColumn Property="@(p => p.EntryDate)" Sortable="true" />
+                    <PropertyColumn Property="@(p => p.Description)" Sortable="true" />
+                    <PropertyColumn Property="@(p => p.Category != null ? p.Category.Name : "")" Title="Category" Sortable="true" />
+                    <TemplateColumn Title="Actions" Align="@Align.End">
+                        <FluentButton IconEnd="@(new Icons.Regular.Size16.Edit())" OnClick="@(() => NavManager.NavigateTo($"/edit/{context.Id}"))" />
+                        <FluentButton IconEnd="@(new Icons.Regular.Size16.Delete())" OnClick="@(async () => await DeleteEntryAsync(context.Id))" />
+                    </TemplateColumn>
+                }
+                else
+                {
+                    <TemplateColumn Align="@Align.Center" Sortable="true">
+                        <div style="display:flex;flex-direction:column">
+                            <span>@context.EntryDate?.ToString("d")</span>
+                            <small>@context.Category?.Name</small>
+                        </div>
+                    </TemplateColumn>
+
+                    <PropertyColumn Property="@(p => p.Description)" Title="Description" Sortable="true" />
+                    <PropertyColumn Property="@(p => p.Amount)" Title="Amount" Sortable="true" />
+                    <TemplateColumn Title="Actions" Align="@Align.End">
+                        <FluentButton IconEnd="@(new Icons.Regular.Size12.Edit())" OnClick="@(() => NavManager.NavigateTo($"/edit/{context.Id}"))" />
+                        <FluentButton IconEnd="@(new Icons.Regular.Size12.Delete())" OnClick="@(async () => await DeleteEntryAsync(context.Id))" />
+                    </TemplateColumn>
+                }
+            </FluentDataGrid>
+        </FluentGridItem>
+    </FluentGrid>
+    @* </div> *@
 }
 @code {
     private FluentDataGrid<BalanceEntryDto> _grid;
     private DateTime? _dateFrom;
     private DateTime? _dateTo;
     private GridItemsProvider<BalanceEntryDto> _balanceItemsProvider;
+    private bool SmallScreen { get; set; } = false;
 
     protected override void OnInitialized()
     {
@@ -49,14 +83,14 @@ else
         _balanceItemsProvider = async req =>
         {
             Filter filter = new Filter
-                {
-                    From = _dateFrom,
-                    To = _dateTo,
-                    SortBy = req.SortByColumn?.Title,
-                    Order = req.SortByAscending ? "asc" : "desc",
-                    StartIndex = req.StartIndex,
-                    RowCount = req.Count ?? 20
-                };
+            {
+                From = _dateFrom,
+                To = _dateTo,
+                SortBy = req.SortByColumn?.Title,
+                Order = req.SortByAscending ? "asc" : "desc",
+                StartIndex = req.StartIndex,
+                RowCount = req.Count ?? 20
+            };
 
             var response = await ApiClient.GetBalanceEntriesAsync(filter);
             return GridItemsProviderResult.From(
@@ -87,5 +121,18 @@ else
         await ApiClient.DeleteEntryAsync(id);
         await _grid.RefreshDataAsync();
 
+    }
+    private void ScreenSizeChanged(GridItemSize args)
+    {
+        if (args == GridItemSize.Sm || args == GridItemSize.Xs)
+        {
+            SmallScreen = true;
+            StateHasChanged();
+        }
+        else
+        {
+            SmallScreen = false;
+            StateHasChanged();
+        }
     }
 }
